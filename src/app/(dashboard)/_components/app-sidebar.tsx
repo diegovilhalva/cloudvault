@@ -23,6 +23,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { paragraphVariants } from "@/components/custom/p";
 import { usePathname } from "next/navigation";
+import SearchBar from "./search-bar";
 
 
 // Menu items.
@@ -68,7 +69,7 @@ export function AppSidebar() {
         <SidebarHeader>
           <SidebarMenu className="space-y-4 mt-3">
             <SidebarMenuItem>
-            
+              <SearchBar/>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>

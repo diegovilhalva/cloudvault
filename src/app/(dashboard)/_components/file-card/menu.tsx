@@ -1,10 +1,13 @@
-"use client"
+"use client";
 
-import { IFile } from "@/lib/database/schema/file.model"
-import { RiDeleteBin7Fill, RiFileEditFill, RiFolderDownloadFill, RiFolderSharedFill, RiLoader3Fill, RiShareFill } from "@remixicon/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
-import { Dispatch, ReactNode, SetStateAction, useState } from "react"
+import {
+  deleteFile,
+  generateUrl,
+  renameFile,
+  updateFilePermissions,
+} from "@/action/file.action";
+import { paragraphVariants } from "@/components/custom/p";
+import { KebabMenuIcon } from "@/components/icons/kebab";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,20 +15,45 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { toast } from "sonner";
+} from "@/components/ui/dropdown-menu";
+import { IFile } from "@/lib/database/schema/file.model";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import { cn, dynamicDownload, parseError } from "@/lib/utils";
-import { deleteFile, generateUrl, renameFile, updateFilePermissions } from "@/action/file.action";
-import { paragraphVariants } from "@/components/custom/p";
-import { KebabMenuIcon } from "@/components/icons/kebab";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  RiDeleteBin7Fill,
+  RiFileEditFill,
+  RiFolderDownloadFill,
+  RiFolderSharedFill,
+  RiLoader3Fill,
+  RiShareFill,
+} from "@remixicon/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dispatch, ReactNode, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { usePathname } from "next/navigation";
 
 interface Action {
   name: string;
@@ -56,29 +84,42 @@ const actions: Action[] = [
   },
 ];
 
-
-const FileMenu = ({ file, isLinkInProgress, setIsLinkInProgress }: { file: IFile, isLinkInProgress: boolean, setIsLinkInProgress: Dispatch<SetStateAction<boolean>> }) => {
-  const pathname = usePathname()
-  const queryClient = useQueryClient()
+const FileMenu = ({
+  file,
+  isLinkInProgress,
+  setIsLinkInProgress,
+}: {
+  file: IFile;
+  isLinkInProgress: boolean;
+  setIsLinkInProgress: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
-  const isShared = pathname.split("/")[2] === "shared"
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
-  const { sharedWith } = file
+  const isShared = pathname.split("/")[2] === "shared";
+
+  const { sharedWith } = file;
 
   const mutation = useMutation({
     mutationFn: deleteFile,
     onSuccess: (data) => {
-      queryClient.setQueryData(["files", data.category],
+      queryClient.setQueryData(
+        ["files", data.category],
         (oldData: { files: IFile[] }) => {
-          const deletedFileId = data.fileId
+          const deletedFileId = data.fileId;
+
           const updatedFiles = oldData.files.filter(
             (file) => file._id !== deletedFileId
-          )
-          const updatedData = { ...oldData, files: updatedFiles }
-          return updatedData
+          );
+
+          const updatedData = { ...oldData, files: updatedFiles };
+
+          return updatedData;
         }
-      )
+      );
+
       toast("File Deleted", {
         description: file.name,
       });
@@ -90,7 +131,8 @@ const FileMenu = ({ file, isLinkInProgress, setIsLinkInProgress }: { file: IFile
         description: `${err}`,
       });
     },
-  })
+  });
+
   return (
     <>
       <DropdownMenu>
@@ -110,93 +152,100 @@ const FileMenu = ({ file, isLinkInProgress, setIsLinkInProgress }: { file: IFile
             Action
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {actions.map((action, i) => (
+            <DropdownMenuItem
+              key={i}
+              className="flex items-center justify-start gap-2 px-3 py-4"
+              onClick={async () => {
+                if (action.name === "Delete") {
+                  if (
+                    isShared &&
+                    !sharedWith[0].permissions.includes("file:delete")
+                  ) {
+                    toast("Access Denied", {
+                      description:
+                        "You do not have permission to delete this file.",
+                    });
 
-          {
-            actions.map((action, i) => (
-              <DropdownMenuItem key={i} className="flex items-center justify-start gap-2 px-3 py-4"
-                onClick={async () => {
-                  if (action.name === "Delete") {
-                    if (isShared && !sharedWith[0].permissions.includes("file:delete")) {
-                      toast("Access Denied", {
-                        description:
-                          "You do not have permission to delete this file.",
-                      });
-
-                      return;
-                    }
-                    mutation.mutateAsync(file)
+                    return;
                   }
-                  if (action.name === "Share") {
-                    if (isShared) {
-                      toast("Access Denied", {
-                        description:
-                          "You do not have permission to share this file.",
-                      });
 
-                      return;
-                    }
-                    setIsShareDialogOpen(true)
+                  mutation.mutateAsync(file);
+                }
+
+                if (action.name === "Share") {
+                  if (isShared) {
+                    toast("Access Denied", {
+                      description:
+                        "You do not have permission to share this file.",
+                    });
+
+                    return;
                   }
-                  if (action.name === "Rename") {
-                    if (
-                      isShared &&
-                      !sharedWith[0].permissions.includes("file:update")
-                    ) {
-                      toast("Access Denied", {
-                        description:
-                          "You do not have permission to rename this file.",
-                      });
 
-                      return;
-                    }
+                  setIsShareDialogOpen(true);
+                }
 
-                    setIsRenameDialogOpen(true);
+                if (action.name === "Rename") {
+                  if (
+                    isShared &&
+                    !sharedWith[0].permissions.includes("file:update")
+                  ) {
+                    toast("Access Denied", {
+                      description:
+                        "You do not have permission to rename this file.",
+                    });
+
+                    return;
                   }
-                  if (action.name === "Download") {
-                    if (
-                      isShared &&
-                      !sharedWith[0].permissions.includes("file:read")
-                    ) {
-                      toast("Access Denied", {
-                        description:
-                          "You do not have permission to delete this file.",
-                      });
 
-                      return;
-                    }
+                  setIsRenameDialogOpen(true);
+                }
 
-                    setIsLinkInProgress(true);
+                if (action.name === "Download") {
+                  if (
+                    isShared &&
+                    !sharedWith[0].permissions.includes("file:read")
+                  ) {
+                    toast("Access Denied", {
+                      description:
+                        "You do not have permission to delete this file.",
+                    });
 
-                    const { data, status } = await generateUrl(file.cid);
+                    return;
+                  }
 
-                    if (status !== 201) {
-                      toast(`${data}`, {
-                        description: data as string,
-                      });
+                  setIsLinkInProgress(true);
 
-                      setIsLinkInProgress(false);
+                  const { data, status } = await generateUrl(file.cid);
 
-                      return;
-                    }
+                  if (status !== 201) {
+                    toast(`${data}`, {
+                      description: data as string,
+                    });
 
                     setIsLinkInProgress(false);
-                    dynamicDownload(data as string, file.name)
 
+                    return;
                   }
-                }}
-              >
-                {action.icon}
-                <span
-                  className={cn(
-                    paragraphVariants({ size: "small", weight: "medium" })
-                  )}
-                >
-                  {action.name}
-                </span>
-              </DropdownMenuItem>
-            ))
-          }
 
+                  setIsLinkInProgress(false);
+
+                  dynamicDownload(data as string, file.name);
+                }
+              }}
+            >
+              {action.icon}
+
+              <span
+                className={cn(
+                  paragraphVariants({ size: "small", weight: "medium" })
+                )}
+              >
+                {action.name}
+              </span>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -212,8 +261,8 @@ const FileMenu = ({ file, isLinkInProgress, setIsLinkInProgress }: { file: IFile
         setIsRenameDialogOpen={setIsRenameDialogOpen}
       />
     </>
-  )
-}
+  );
+};
 
 const permissions = [
   {
@@ -483,4 +532,4 @@ export const RenameFileForm = ({
   );
 };
 
-export default FileMenu
+export default FileMenu;

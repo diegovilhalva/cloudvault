@@ -13,7 +13,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  title: "Cloud Vualt",
+  title: "Cloud Vault",
   description: "The only solutiuon you ever need for secure files storage.",
 };
 
