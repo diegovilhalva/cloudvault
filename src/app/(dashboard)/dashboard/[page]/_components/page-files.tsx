@@ -79,7 +79,6 @@ const PageFiles = ({ page }: PageFilesProps) => {
 
     }, [inView, data])
 
-    if (page === "subscription") return <>Subscription</>
     if (isLoading) return <RiLoader3Fill className="animate-spin mx-auto" />
     if (error) return (
         <P size="large" weight="bold">

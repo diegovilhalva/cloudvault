@@ -1,5 +1,6 @@
 import { generatePageKey } from "@/lib/utils";
 import PageFiles from "./_components/page-files";
+import SubscriptionPage from "./_components/page-subscription";
 
 
 interface Props {
@@ -20,7 +21,7 @@ const page = async({params}:Props) => {
     <div>
       <h1 className="capitalize">{page}</h1>
       <br />
-      {page === "subscription" ? <></>: <PageFiles page={key}/>}
+      {page === "subscription" ? <SubscriptionPage/>: <PageFiles page={key}/>}
     </div>
   )
 }
