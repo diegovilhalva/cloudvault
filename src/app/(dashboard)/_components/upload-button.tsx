@@ -46,9 +46,9 @@ const UploadButton = () => {
         onSuccess: (newData) => {
             queryClient.setQueryData(
                 ["files", newData.category],
-                (oldData: { files: IFile[] }) => {
+                (oldData?: { files: IFile[] }) => {
                     const uploadedFile = newData.file;
-                    const oldFile = oldData.files || [];
+                    const oldFile = oldData?.files || [];
 
                     const newMergeFiles = [uploadedFile, ...oldFile];
 

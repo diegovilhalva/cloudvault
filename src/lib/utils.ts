@@ -59,15 +59,26 @@ export function generatePageKey(page: string): string {
   return page;
 }
 
-export function dynamicDownload(url: string, name: string) {
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
+export async function dynamicDownload(url: string, name: string) {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
 
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Download error:", error);
+  }
 }
+
 
 export function ActionResponse<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
