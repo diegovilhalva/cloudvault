@@ -12,12 +12,12 @@ import { ActionResponse, parseError } from "@/lib/utils";
 
 export async function generateUrl(cid : string) {
   try {
-    const url = pinata.gateways.createSignedURL({
+    const url = await pinata.gateways.createSignedURL({
       cid,
       expires: FIVE_MINUTES,
     });
 
-    console.log(url)
+    
     return { data: url, status: 201 };
   } catch (error) {
     console.log("Error in generating files: ", error);

@@ -218,7 +218,8 @@ const FileMenu = ({
                   setIsLinkInProgress(true);
 
                   const { data, status } = await generateUrl(file.cid);
-
+                  
+                
                   if (status !== 201) {
                     toast(`${data}`, {
                       description: data as string,
