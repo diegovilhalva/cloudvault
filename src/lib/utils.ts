@@ -16,7 +16,7 @@ export function parseError(error: unknown) {
   if (error instanceof AxiosError) return error.response?.data?.message || error.message;
 
   if (typeof error === "string") return error;
-  
+
 
   return JSON.stringify(error);
 }
@@ -61,8 +61,10 @@ export function generatePageKey(page: string): string {
 
 export async function dynamicDownload(url: string, name: string) {
   try {
-    const response = await fetch(`/api/v1/files/proxy?url=${encodeURIComponent(url)}`);
+    const response = await fetch(url);
+    
     const blob = await response.blob();
+    
     const blobUrl = window.URL.createObjectURL(blob);
 
     const a = document.createElement("a");
