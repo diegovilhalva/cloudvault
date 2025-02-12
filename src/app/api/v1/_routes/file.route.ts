@@ -287,4 +287,20 @@ fileRoute.post("/upload", async (c) => {
   }
 });
 
+fileRoute.get("/proxy", async (c) => {
+  const url = c.req.query("url");
+  if (!url) return c.text("Missing URL", 400);
+
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0", 
+    },
+  });
+
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+
+  return new Response(response.body, { headers });
+});
+
 export default fileRoute;

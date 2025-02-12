@@ -61,7 +61,7 @@ export function generatePageKey(page: string): string {
 
 export async function dynamicDownload(url: string, name: string) {
   try {
-    const response = await fetch(url);
+    const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`);
     const blob = await response.blob();
     const blobUrl = window.URL.createObjectURL(blob);
 
@@ -72,12 +72,12 @@ export async function dynamicDownload(url: string, name: string) {
     a.click();
     document.body.removeChild(a);
 
-    
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
     console.error("Download error:", error);
   }
 }
+
 
 
 export function ActionResponse<T>(data: T): T {
