@@ -61,7 +61,7 @@ export function generatePageKey(page: string): string {
 
 export async function dynamicDownload(url: string, name: string) {
   try {
-    const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`);
+    const response = await fetch(`/api/v1/files/proxy?url=${encodeURIComponent(url)}`);
     const blob = await response.blob();
     const blobUrl = window.URL.createObjectURL(blob);
 
