@@ -6,7 +6,19 @@ import { pinata } from "@/lib/pinata/config";
 import { getCategoryFromMimeType, parseError } from "@/lib/utils";
 import { Hono } from "hono";
 
+import { cors } from "hono/cors";
+
+
+
 const fileRoute = new Hono();
+
+fileRoute.use(
+  cors({
+    origin: "*", 
+    allowMethods: ["GET", "POST"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 fileRoute.get("/", async (c) => {
   try {
@@ -286,6 +298,41 @@ fileRoute.post("/upload", async (c) => {
     );
   }
 });
+
+
+fileRoute.post("/download", async (c) => {
+  try {
+   
+    const { url } = await c.req.json()
+    console.log(url)
+    const session = await getServerSession();
+    if (!session) {
+      return c.json({ message: "Unauthorized", description: "You need to be logged in" }, { status: 401 });
+    }
+
+    
+    const response = await fetch(url);
+
+
+    if (!response.ok) {
+      const errorText = await response.text();
+     
+      return c.json({message: "Failed to fetch from pinata", description: errorText },{status: 401});
+    }
+
+    const fileBlob = await response.blob();
+    return new Response(fileBlob, {
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/octet-stream",
+        "Content-Disposition": `attachment; filename="arquivo-pinata"`,
+      },
+    });
+  } catch (error) {
+    console.error("Error in file download: ", error);
+    return c.json({ message: "Error", description: "Something went wrong" }, { status: 500 });
+  }
+});
+
 
 
 

@@ -59,26 +59,37 @@ export function generatePageKey(page: string): string {
   return page;
 }
 
-export async function dynamicDownload(url: string, name: string) {
+export const dynamicDownload = async (signedUrl: string, filename: string) => {
   try {
-    const response = await fetch(url);
-    
-    const blob = await response.blob();
-    
-    const blobUrl = window.URL.createObjectURL(blob);
+   
+    const response = await fetch(`/api/v1/files/download`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: signedUrl }),
+    });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to download file: ${response.status} - ${errorText}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    
     const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = name;
+    a.href = url;
+    a.download = filename || "downloaded-file"; 
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
 
-    window.URL.revokeObjectURL(blobUrl);
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   } catch (error) {
-    console.error("Download error:", error);
+    console.error("Erro no download do arquivo:", error);
   }
-}
+};
+
+
 
 
 

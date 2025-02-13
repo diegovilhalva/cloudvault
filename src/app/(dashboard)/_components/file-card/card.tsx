@@ -53,7 +53,7 @@ const FileCard = ({ file }: { file: IFile }) => {
 
             setIsLinkInProgress(false)
 
-            dynamicDownload(data as string, file.name)
+            dynamicDownload(data, file.name)
           }
         }}>{requiredName}</P>
         <P size="small" variant="muted" weight="light">

@@ -219,7 +219,7 @@ const FileMenu = ({
 
                   const { data, status } = await generateUrl(file.cid);
                   
-                
+                  
                   if (status !== 201) {
                     toast(`${data}`, {
                       description: data as string,
@@ -232,7 +232,7 @@ const FileMenu = ({
 
                   setIsLinkInProgress(false);
 
-                  dynamicDownload(data as string, file.name);
+                  dynamicDownload(data, file.name);
                 }
               }}
             >

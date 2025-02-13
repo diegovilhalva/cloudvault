@@ -189,7 +189,7 @@ const SearchDisplayCard = ({ file }: { file: IFile }) => {
 
               setIsLinkInProgress(false);
 
-              dynamicDownload(data as string, file.name);
+              dynamicDownload(data, file.name);
             }}
           >
             {!isLinkInProgress ? (

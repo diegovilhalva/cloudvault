@@ -17,8 +17,12 @@ export async function generateUrl(cid : string) {
       expires: FIVE_MINUTES,
     });
 
-    
-    return { data: url, status: 201 };
+      
+    return { data: url, status: 201 ,  headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },};
   } catch (error) {
     console.log("Error in generating files: ", error);
     const err = parseError(error);
