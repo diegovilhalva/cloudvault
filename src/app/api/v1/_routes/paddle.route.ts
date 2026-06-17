@@ -23,11 +23,8 @@ interface CustomData {
 paddleRoute.post("paddle/subscription", async (c) => {
   try {
     await db();
-
     const signature = (c.req.header("paddle-signature") as string) || "";
-
     const rawRequestBody = await c.req.text();
-
     const secretKey = PADDLE_SUBSCRIPTION_WEBHOOK_SECRET_KEY;
 
     if (signature && rawRequestBody) {
@@ -36,13 +33,16 @@ paddleRoute.post("paddle/subscription", async (c) => {
         secretKey,
         signature
       );
-      if (eventData.eventType) {
-        if (EventName.SubscriptionActivated) {
-          const customData = (eventData.data as CustomData)?.customData;
 
+      console.log("=== PADDLE WEBHOOK EVENT ===");
+      console.log("eventType:", eventData.eventType);
+      console.log("full payload:", JSON.stringify(eventData, null, 2));
+
+      if (eventData.eventType) {
+        if (eventData.eventType === EventName.SubscriptionActivated) {
+          const customData = (eventData.data as CustomData)?.customData;
           const userId = customData.customer.id;
           const extraStorageInByte = customData.customer.extraStorageInByte;
-
           await Subscription.updateOne(
             { subscriber: userId },
             {
@@ -55,15 +55,12 @@ paddleRoute.post("paddle/subscription", async (c) => {
               },
             }
           );
-
           return c.json({}, { status: 200 });
         }
 
-        if (EventName.SubscriptionCanceled) {
+        if (eventData.eventType === EventName.SubscriptionCanceled) {
           const customData = (eventData.data as CustomData)?.customData;
-
           const userId = customData.customer.id;
-
           await Subscription.updateOne(
             { subscriber: userId },
             {
@@ -71,29 +68,19 @@ paddleRoute.post("paddle/subscription", async (c) => {
               subscriptionType: "free",
               "gateway.paddle.subscription.entityType": eventData.eventType,
             }
-                            );
-                            const eventData = await paddle.webhooks.unmarshal(
-                    rawRequestBody,
-                    secretKey,
-                    signature
-                  );
-                  
-                  console.log("=== PADDLE WEBHOOK EVENT ===");
-                  console.log("eventType:", eventData.eventType);
-                  console.log("full payload:", JSON.stringify(eventData, null, 2));
-
+          );
           return c.json({}, { status: 200 });
         }
 
         return c.json({}, { status: 200 });
       }
     }
+
     throw "Signature missing in header";
   } catch (error) {
     console.log("Error in verifying subscription webhook: ", error);
-
     return c.json({}, { status: 500 });
   }
 });
 
-export default paddleRoute
+export default paddleRoute;
