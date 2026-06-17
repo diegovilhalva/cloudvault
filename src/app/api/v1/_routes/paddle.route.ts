@@ -71,7 +71,16 @@ paddleRoute.post("paddle/subscription", async (c) => {
               subscriptionType: "free",
               "gateway.paddle.subscription.entityType": eventData.eventType,
             }
-          );
+                            );
+                            const eventData = await paddle.webhooks.unmarshal(
+                    rawRequestBody,
+                    secretKey,
+                    signature
+                  );
+                  
+                  console.log("=== PADDLE WEBHOOK EVENT ===");
+                  console.log("eventType:", eventData.eventType);
+                  console.log("full payload:", JSON.stringify(eventData, null, 2));
 
           return c.json({}, { status: 200 });
         }
