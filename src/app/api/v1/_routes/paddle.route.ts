@@ -37,16 +37,17 @@ paddleRoute.post("paddle/subscription", async (c) => {
         signature
       );
       if (eventData.eventType) {
-        if (eventData.eventType === EventName.SubscriptionActivated) {
+        if (EventName.SubscriptionActivated) {
           const customData = (eventData.data as CustomData)?.customData;
+
           const userId = customData.customer.id;
           const extraStorageInByte = customData.customer.extraStorageInByte;
-          
+
           await Subscription.updateOne(
             { subscriber: userId },
             {
               subscriptionType: "paid",
-              status: "activated",
+              status: "active",
               "gateway.paddle.subscription.id": eventData.data.id,
               "gateway.paddle.subscription.entityType": eventData.eventType,
               $inc: {
@@ -54,13 +55,15 @@ paddleRoute.post("paddle/subscription", async (c) => {
               },
             }
           );
-           console.log(eventData.eventType, eventData.data) 
+
           return c.json({}, { status: 200 });
         }
 
-        if (eventData.eventType === EventName.SubscriptionCanceled) {
+        if (EventName.SubscriptionCanceled) {
           const customData = (eventData.data as CustomData)?.customData;
+
           const userId = customData.customer.id;
+
           await Subscription.updateOne(
             { subscriber: userId },
             {
@@ -69,6 +72,7 @@ paddleRoute.post("paddle/subscription", async (c) => {
               "gateway.paddle.subscription.entityType": eventData.eventType,
             }
           );
+
           return c.json({}, { status: 200 });
         }
 
