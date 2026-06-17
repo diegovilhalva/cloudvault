@@ -41,6 +41,7 @@ paddleRoute.post("paddle/subscription", async (c) => {
           const customData = (eventData.data as CustomData)?.customData;
           const userId = customData.customer.id;
           const extraStorageInByte = customData.customer.extraStorageInByte;
+          
           await Subscription.updateOne(
             { subscriber: userId },
             {
@@ -53,6 +54,7 @@ paddleRoute.post("paddle/subscription", async (c) => {
               },
             }
           );
+           console.log(eventData.eventType, eventData.data) 
           return c.json({}, { status: 200 });
         }
 
