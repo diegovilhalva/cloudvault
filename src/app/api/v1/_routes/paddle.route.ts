@@ -8,7 +8,7 @@ import { Subscription } from "@/lib/database/schema/subscription.model";
 const paddleRoute = new Hono();
 
 interface CustomData {
-  customData: {
+   custom_data: {
     entityType: string;
     customer: {
       id: string;
@@ -40,7 +40,7 @@ paddleRoute.post("paddle/subscription", async (c) => {
 
       if (eventData.eventType) {
         if (eventData.eventType === EventName.SubscriptionActivated) {
-          const customData = (eventData.data as CustomData)?.customData;
+          const customData = (eventData.data as CustomData)?.custom_data;
           const userId = customData.customer.id;
           const extraStorageInByte = customData.customer.extraStorageInByte;
           await Subscription.updateOne(
