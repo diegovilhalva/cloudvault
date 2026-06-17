@@ -9,7 +9,7 @@ const app = new Hono().basePath('/api/v1')
 
 app.route("/files",fileRoute)
 
-app.route("/webhook",paddleRoute)
+app.route("/",paddleRoute)
 
 export const GET = handle(app)
 export const POST = handle(app)
