@@ -47,7 +47,7 @@ paddleRoute.post("paddle/subscription", async (c) => {
             { subscriber: userId },
             {
               subscriptionType: "paid",
-              status: "active",
+              status: "activated",
               "gateway.paddle.subscription.id": eventData.data.id,
               "gateway.paddle.subscription.entityType": eventData.eventType,
               $inc: {
